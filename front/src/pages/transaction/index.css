@@ -1,0 +1,29 @@
+.transaction {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.transaction__sum {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 38px;
+  font-weight: bold;
+  color: #1f1f1f;
+}
+.receipt {
+  color: #24b277;
+}
+.transaction_desc {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e9e8eb;
+  border-radius: 10px;
+  gap: 20px;
+  padding: 16px;
+}
+.transaction__item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}

@@ -1,0 +1,37 @@
+.button {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #775ce5;
+  color: #775ce5;
+  background-color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: opacity 0.7s;
+  &:hover {
+    opacity: 0.7;
+  }
+  &:active {
+    opacity: 0.3;
+  }
+  &--disabled {
+    opacity: 0.5;
+    cursor: default;
+    &:hover,
+    &:active {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+}
+.button__dark {
+  border: 1px solid #fff;
+  color: #fff;
+  background-color: #775ce5;
+}
+.button__warning {
+  border: 1px solid red;
+  color: red;
+  background-color: #fff;
+}

@@ -1,0 +1,25 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.form__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form__error {
+  color: red;
+  font-size: 12px;
+  display: none;
+
+  &--active {
+    display: block;
+  }
+}
+
+.validation {
+  &--active {
+    border-color: red !important;
+  }
+}

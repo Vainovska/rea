@@ -1,0 +1,21 @@
+.alert {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  &--success {
+    border-color: green;
+    color: green;
+  }
+  &--error {
+    border-color: red;
+    color: red;
+  }
+  &--progress {
+    border-color: blue;
+    color: blue;
+  }
+  &--disabled {
+    display: none;
+  }
+}

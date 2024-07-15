@@ -1,0 +1,54 @@
+.recive__item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.recive__title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1f1f1f;
+}
+.recive__card {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 16px;
+}
+.recive__card-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.recive__icon {
+  cursor: pointer;
+  transition: opacity 0.7s;
+  &:hover {
+    opacity: 0.7;
+  }
+  display: block;
+  position: relative;
+}
+.recive__icon--stripe {
+  height: 40px;
+  width: 40px;
+  background-image: url("./stipe.svg");
+  background-size: cover;
+}
+.recive__icon--stripe2 {
+  height: 40px;
+  width: 160px;
+  background-image: url("./stripe-2.svg");
+  background-repeat: no-repeat;
+}
+.recive__icon--coin {
+  height: 40px;
+  width: 40px;
+  background-image: url("./coin.svg");
+  background-size: cover;
+}
+.recive__icon--coin2 {
+  height: 40px;
+  width: 160px;
+  background-image: url("./coin-2.svg");
+  background-repeat: no-repeat;
+}

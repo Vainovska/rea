@@ -1,0 +1,14 @@
+.link {
+  font-size: 14px;
+  text-decoration: underline;
+  color: #775ce5;
+  cursor: pointer;
+  transition: opacity 0.7s;
+  &:hover {
+    opacity: 0.7;
+  }
+}
+.link__prefix {
+  font-size: 14px;
+  color: #1d1d1f;
+}
