@@ -5,6 +5,7 @@ import Divider from "../../component/divider";
 import { useParams, useNavigate } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../AuthProvider";
+
 const TransactionPage = () => {
   const { transactionId } = useParams();
   const [transaction, setTransaction] = useState(null);
@@ -23,13 +24,22 @@ const TransactionPage = () => {
           }
         );
         const data = await response.json();
+
         if (response.ok) {
-          setTransaction(data);
+          if (data.amount && data.createdAt && data.id && data.type) {
+            setTransaction(data);
+          } else {
+            console.error("Invalid transaction data:", data);
+            alert("Invalid transaction data received");
+            navigate("/balance");
+          }
         } else {
+          console.error("Server error:", data.message);
           alert(data.message);
           navigate("/balance");
         }
       } catch (error) {
+        console.error("Error fetching transaction:", error);
         alert("Error fetching transaction");
         navigate("/balance");
       }
@@ -54,7 +64,7 @@ const TransactionPage = () => {
           </div>
           <Divider />
           <div className="transaction__item">
-            <span>Adress</span>
+            <span>Address</span>
             <span>{transaction.id}</span>
           </div>
           <Divider />
@@ -68,4 +78,5 @@ const TransactionPage = () => {
     </Page>
   );
 };
+
 export default TransactionPage;

@@ -1,29 +1,38 @@
 class Transaction {
   static #list = []
+
   constructor(amount, type, paymentMethod, statusTran) {
-    this.id = function getRandomId(min, max) {
-      return (
-        Math.floor(Math.random() * (99999 - 10000)) + 10000
-      )
-    }
+    this.id = this.getRandomId(10000, 99999) // Assign a random ID
     this.amount = amount
     this.type = type
     this.paymentMethod = paymentMethod
     this.date = new Date().getTime()
     this.statusTran = statusTran
   }
-  static getList = () => this.#list
-  static getById = (id) => {
-    return (this.#list = this.#list.filter(
-      (transaction) => transaction.id === id,
-    ))
+
+  getRandomId(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
   }
-  static createTransaction = () => {
+
+  static getList() {
+    return this.#list
+  }
+
+  static getById(id) {
+    return this.#list.find(
+      (transaction) => transaction.id === id,
+    )
+  }
+
+  static createTransaction(
+    amount,
+    type,
+    paymentMethod,
+    statusTran,
+  ) {
     const newTransaction = new Transaction(
-      id,
       amount,
       type,
-      date,
       paymentMethod,
       statusTran,
     )
@@ -31,10 +40,10 @@ class Transaction {
     return newTransaction
   }
 
-  static deleteTransaction = () => {
-    return (this.#list = this.#list.filter(
+  static deleteTransaction(id) {
+    this.#list = this.#list.filter(
       (transaction) => transaction.id !== id,
-    ))
+    )
   }
 }
 

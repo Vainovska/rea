@@ -4,8 +4,8 @@ import { useContext } from "react";
 
 const AuthRoute = ({ children }) => {
   const navigate = useNavigate();
-  const { authState } = useContext(AuthContext);
-  if (authState && authState.user) {
+  const { state } = useContext(AuthContext);
+  if (state && state.user && state.token) {
     return navigate("/balance");
   }
   return children;

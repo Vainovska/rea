@@ -4,17 +4,36 @@ const router = express.Router()
 const { Notification } = require('../class/notification')
 const { User } = require('../class/user')
 const { Transaction } = require('../class/transaction')
+const { Session } = require('../class/session')
 // Підключіть файли роутів
 // Підключіть інші файли роутів, якщо є
 
 // Об'єднайте файли роутів за потреби
 // Використовуйте інші файли роутів, якщо є
+const authenticateUser = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]
+  if (!token)
+    return res
+      .status(401)
+      .json({ message: 'No token provided' })
+
+  const session = Session.get(token)
+  if (!session)
+    return res
+      .status(401)
+      .json({ message: 'Invalid token' })
+
+  req.user = session.user
+  next()
+}
+
+router.use(authenticateUser)
 
 router.post('/recive', (req, res) => {
   try {
     const { amount, paymentMethod } = req.body
 
-    // Створення нової транзакції
+    // Create a new transaction
     const transaction = new Transaction({
       user: req.user.id,
       type: 'recive',
@@ -24,31 +43,30 @@ router.post('/recive', (req, res) => {
     })
     transaction.save()
 
-    // Оновлення балансу користувача
+    // Update user's balance
     req.user.balance += amount
     req.user.save()
 
-    // Створення нової нотифікації
+    // Create a new notification
     const notification = new Notification({
       user: req.user.id,
       message: `Balance topped up by ${amount} using ${paymentMethod}`,
     })
     notification.save()
 
-    res
-      .status(200)
-      .json(
-        { message: 'Balance topped up successfully' },
-        transaction,
-        notification,
-      )
+    res.status(200).json({
+      message: 'Balance topped up successfully',
+      transaction,
+      notification,
+    })
   } catch (error) {
     res
       .status(500)
       .json({ message: 'Something went wrong' })
   }
 })
-router.get('/send', (req, res) => {
+
+router.post('/send', (req, res) => {
   try {
     const { email, amount } = req.body
     const recipient = User.getByEmail({ email })
@@ -65,7 +83,7 @@ router.get('/send', (req, res) => {
         .json({ message: 'Insufficient balance' })
     }
 
-    // Створення транзакції для відправника
+    // Create transaction for sender
     const senderTransaction = new Transaction({
       user: req.user.id,
       type: 'send',
@@ -74,18 +92,18 @@ router.get('/send', (req, res) => {
     })
     senderTransaction.save()
 
-    // Створення нотифікації для відправника
+    // Create notification for sender
     const senderNotification = new Notification({
       user: req.user.id,
       message: `You sent ${amount} to ${email}`,
     })
     senderNotification.save()
 
-    // Оновлення балансу відправника
+    // Update sender's balance
     req.user.balance -= amount
     req.user.save()
 
-    // Створення транзакції для одержувача
+    // Create transaction for recipient
     const recipientTransaction = new Transaction({
       user: recipient.id,
       type: 'recive',
@@ -94,14 +112,14 @@ router.get('/send', (req, res) => {
     })
     recipientTransaction.save()
 
-    // Створення нотифікації для одержувача
+    // Create notification for recipient
     const recipientNotification = new Notification({
       user: recipient._id,
       message: `You received ${amount} from ${req.user.email}`,
     })
     recipientNotification.save()
 
-    // Оновлення балансу одержувача
+    // Update recipient's balance
     recipient.balance += amount
     recipient.save()
 
@@ -114,6 +132,7 @@ router.get('/send', (req, res) => {
       .json({ message: 'Something went wrong' })
   }
 })
+
 router.get('/:transactionId', (req, res) => {
   try {
     const transaction = Transaction.getById(
@@ -126,6 +145,7 @@ router.get('/:transactionId', (req, res) => {
         .json({ message: 'Transaction not found' })
     }
 
+    // Ensure the requester owns the transaction
     if (
       transaction.user.toString() !== req.user.id.toString()
     ) {
@@ -141,6 +161,5 @@ router.get('/:transactionId', (req, res) => {
       .json({ message: 'Something went wrong' })
   }
 })
-
 // Експортуємо глобальний роутер
 module.exports = router

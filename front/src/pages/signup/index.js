@@ -6,7 +6,7 @@ import FieldPassword from "../../component/field-password";
 import Button from "../../component/button";
 import LinkHref from "../../component/link";
 import { Alert } from "../../component/alert";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { saveSession } from "../../session";
 import { useAuth } from "../../AuthProvider";
@@ -17,7 +17,7 @@ const FIELD_NAME = {
   EMAIL: "email",
   PASSWORD: "password",
   PASSWORD_AGAIN: "passwordAgain",
-  IS_CONFIRM: "isConfirm",
+  IS_AGREE: "isAgree",
 };
 
 const FIELD_ERROR = {
@@ -27,7 +27,7 @@ const FIELD_ERROR = {
   PASSWORD:
     "Пароль повинен складатися з не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
   PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
-  NOT_CONFIRM: "Ви не погоджуєтесь з правилами",
+  NOT_AGREE: "Ви не погоджуєтесь з правилами",
 };
 
 const SignupForm = () => {
@@ -60,9 +60,9 @@ const SignupForm = () => {
         return FIELD_ERROR.PASSWORD_AGAIN;
       }
     }
-    if (name === FIELD_NAME.IS_CONFIRM) {
+    if (name === FIELD_NAME.IS_AGREE) {
       if (!Boolean(value)) {
-        return FIELD_ERROR.NOT_CONFIRM;
+        return FIELD_ERROR.NOT_AGREE;
       }
     }
 
@@ -102,29 +102,41 @@ const SignupForm = () => {
       console.log(values);
 
       setAlert({ status: "progress", message: "Завантаження..." });
+    }
 
-      try {
-        const response = await fetch("http://localhost:4000/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
+    try {
+      const response = await fetch("http://localhost:4000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
+      console.log("Response data:", data);
+      if (response.ok) {
+        const token = data.session;
+        const user = data.user;
 
-        if (response.ok) {
-          setAlert({ status: "success", message: data.message });
-          saveSession(data.session);
-          login(data.token, data.user);
+        console.log("Extracted token:", token);
+        console.log("Extracted user:", user);
+
+        if (token && user) {
+          saveSession({ token, user });
+          login(token, user);
           navigate("/signup-confirm");
         } else {
-          setAlert({ status: "error", message: data.message });
+          console.error("Token or user is missing:", { token, user });
+          setAlert({ status: "error", message: "Token or user is missing" });
         }
-      } catch (error) {
-        setAlert({ status: "error", message: error.message });
+      } else {
+        console.error("Error response:", data);
+        setAlert({ status: "error", message: data.message });
       }
+    } catch (error) {
+      console.error("Error response:", error);
+      setAlert({ status: "error", message: error.message });
     }
   };
   const validateAll = () => {
@@ -137,6 +149,7 @@ const SignupForm = () => {
     });
     setError(newErrors);
   };
+
   return (
     <Page>
       <Header title={"Sign Up"} description={"Choose a registration method"} />
@@ -185,16 +198,16 @@ const SignupForm = () => {
             <input
               type="checkbox"
               name="isConfirm"
-              id={FIELD_NAME.IS_CONFIRM}
-              checked={values[FIELD_NAME.IS_CONFIRM] || false}
+              id={FIELD_NAME.IS_AGREE}
+              checked={values[FIELD_NAME.IS_AGREE] || false}
               onChange={(e) =>
-                handleChange(FIELD_NAME.IS_CONFIRM, e.target.checked)
+                handleChange(FIELD_NAME.IS_AGREE, e.target.checked)
               }
             />
             Я згоден/-на з умовами
           </label>
-          {error[FIELD_NAME.IS_CONFIRM] && (
-            <span>{error[FIELD_NAME.IS_CONFIRM]}</span>
+          {error[FIELD_NAME.IS_AGREE] && (
+            <span>{error[FIELD_NAME.IS_AGREE]}</span>
           )}
         </div>
         <Button

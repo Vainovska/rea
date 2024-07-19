@@ -27,15 +27,25 @@ class Session {
   static create(user) {
     const session = new Session(user)
     Session.#list.push(session)
+    console.log('Session created:', session)
     return session
   }
 
   static get(token) {
-    return (
-      Session.#list.find(
-        (session) => session.token === token,
-      ) || null
+    const session = Session.#list.find(
+      (session) => session.token === token,
     )
+    console.log('Session.get called with token:', token)
+    return session || null
+  }
+  static save(token, sessionData) {
+    console.log(
+      'Session.save called with token:',
+      token,
+      'and sessionData:',
+      sessionData,
+    )
+    this.#list[token] = sessionData
   }
 }
 

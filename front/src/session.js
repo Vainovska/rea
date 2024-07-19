@@ -2,25 +2,29 @@ export const SESSION_KEY = "sessionAuth";
 
 export const saveSession = (session) => {
   try {
-    window.session = session;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    if (session) {
+      localStorage.setItem("token", session.token);
+      localStorage.setItem("user", JSON.stringify(session.user));
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
   } catch (err) {
-    console.log(err);
-    window.session = null;
+    console.error("Failed to save session:", err);
   }
 };
 
 export const loadSession = () => {
   try {
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY));
-    if (session) {
-      window.session = session;
-    } else {
-      window.session = null;
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (token && user) {
+      return { token, user };
     }
   } catch (err) {
-    console.log(err);
-    window.session = null;
+    console.error("Failed to load session:", err);
+
+    return null;
   }
 };
 
@@ -29,18 +33,18 @@ export const getTokenSession = () => {
     const session = getSession();
     return session ? session.token : null;
   } catch (err) {
-    console.log(err);
+    console.error("Failed to get token from session:", err);
     return null;
   }
 };
 
 export const getSession = () => {
   try {
-    const session =
-      JSON.parse(localStorage.getItem(SESSION_KEY)) || window.session;
-    return session || null;
+    const session = localStorage.getItem("session");
+    return session ? JSON.parse(session) : null;
   } catch (err) {
-    console.log(err);
+    console.error("Failed to get session:", err);
     return null;
   }
 };
+loadSession();

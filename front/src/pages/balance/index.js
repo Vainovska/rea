@@ -2,18 +2,25 @@ import "./index.css";
 import { useEffect, useState } from "react";
 import { useContext } from "react";
 import { AuthContext } from "../../AuthProvider";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Page from "../../component/page";
 const BalancePage = () => {
   const [transactions, setTransactions] = useState([]);
-  const { authState } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!token) {
+      navigate("/signin");
+      return;
+    }
+
     const fetchTransactions = async () => {
       try {
         const response = await fetch("http://localhost:4000/transactions", {
           headers: {
-            Authorization: `Bearer ${authState.token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await response.json();
@@ -28,7 +35,11 @@ const BalancePage = () => {
     };
 
     fetchTransactions();
-  }, [authState.token]);
+  }, [token, navigate]);
+
+  if (!token) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Page>
@@ -38,7 +49,7 @@ const BalancePage = () => {
           <span className="header__title">Main wallet</span>
           <span className="icon icon__notification"></span>
         </div>
-        <div className="balance">`${authState.user.balance}`</div>
+        <div className="balance">{user?.balance}</div>
         <div className="list-button">
           <div className="item-button">
             <button className="button__balance">
@@ -71,4 +82,5 @@ const BalancePage = () => {
     </Page>
   );
 };
+
 export default BalancePage;

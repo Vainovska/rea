@@ -7,18 +7,17 @@ const PrivateRoute = ({ children }) => {
   const { token, user } = useContext(AuthContext);
 
   useEffect(() => {
+    console.log("PrivateRoute - token:", token);
+    console.log("PrivateRoute - user:", user);
+
     if (!token) {
       navigate("/signin");
-    } else if (user && !user.confirm) {
+    } else if (user && !user.isConfirm) {
       navigate("/signup-confirm");
     }
   }, [token, user, navigate]);
 
-  if (!token || (user && !user.confirm)) {
-    return null;
-  }
-
-  return children;
+  return token ? children : null;
 };
 
 export default PrivateRoute;

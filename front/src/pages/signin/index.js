@@ -26,11 +26,13 @@ const SigninPage = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState("");
-  const handelClick = () => {
+
+  const handleClick = () => {
     navigate("/recovery");
   };
+
   const validate = (name, value) => {
     if (value.length < 1) {
       return FIELD_ERROR.IS_EMPTY;
@@ -48,7 +50,7 @@ const SigninPage = () => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
     const error = validate(name, value);
-    setError({ ...error, [name]: error });
+    setErrors({ ...errors, [name]: error });
   };
 
   const handleSubmit = async (e) => {
@@ -61,7 +63,7 @@ const SigninPage = () => {
       }
     });
     if (Object.keys(newErrors).length > 0) {
-      setError(newErrors);
+      setErrors(newErrors);
       return;
     }
 
@@ -74,15 +76,15 @@ const SigninPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ formValues }),
+        body: JSON.stringify(formValues), // Використання правильного формату передачі даних
       });
 
       const data = await response.json();
 
       if (response.ok) {
         login(data.token, data.user);
-        setAlert(data.message);
         saveSession(data.session);
+        setAlert({ status: "success", message: data.message });
 
         if (data.user.confirm) {
           navigate("/balance");
@@ -90,22 +92,22 @@ const SigninPage = () => {
           navigate("/signup-confirm");
         }
       } else {
-        navigate("/signup");
-        setError(data.message);
-        setAlert(data.message);
+        setErrors({ general: data.message });
+        setAlert({ status: "error", message: data.message });
       }
     } catch (error) {
-      setError("Something went wrong. Please try again later.");
-      setAlert(error.message);
+      setErrors({ general: "Something went wrong. Please try again later." });
+      setAlert({ status: "error", message: error.message });
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <Page>
       <Header title={"Sign In"} description={"Select login method"} />
       <form className="form" onSubmit={handleSubmit}>
-        <div className="form__item ">
+        <div className="form__item">
           <FieldEmail
             label={"Email:"}
             placeholder={"Input your e-mail"}
@@ -113,9 +115,9 @@ const SigninPage = () => {
             onChange={handleChange}
             disabled={isLoading}
           />
-          {error.email && <span className="form__error">{error.email}</span>}
+          {errors.email && <span className="form__error">{errors.email}</span>}
         </div>
-        <div className="form__item ">
+        <div className="form__item">
           <FieldPassword
             label={"Password:"}
             placeholder={"Input your password"}
@@ -123,24 +125,27 @@ const SigninPage = () => {
             onChange={handleChange}
             disabled={isLoading}
           />
-          {error.password && (
-            <span className="form__error">{error.password}</span>
+          {errors.password && (
+            <span className="form__error">{errors.password}</span>
           )}
         </div>
+        {errors.general && (
+          <span className="form__error">{errors.general}</span>
+        )}
         <LinkHref
-          text={"Already have an account?"}
+          text={"Forgot your password?"}
           name={"Recovery"}
-          onClick={handelClick}
+          onClick={handleClick}
         />
         <Button
+          type="submit"
           disabled={isLoading}
-          onClick={handleSubmit}
           className={"button button__dark"}
           text={"Continue"}
         />
-        {alert.status && (
+        {alert && (
           <Alert
-            status={isLoading ? "progress" : "success"}
+            status={isLoading ? "progress" : alert.status}
             message={alert.message}
           />
         )}
@@ -148,4 +153,5 @@ const SigninPage = () => {
     </Page>
   );
 };
+
 export default SigninPage;

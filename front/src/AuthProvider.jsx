@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useContext } from "react";
 import { useEffect } from "react";
+import { saveSession, loadSession } from "./session";
 
 // Ініціалізація контексту
 export const AuthContext = createContext();
@@ -68,29 +69,43 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const user = JSON.parse(localStorage.getItem("user"));
-      dispatch({ type: "LOGIN", payload: { token, user } });
+    const session = loadSession();
+    if (session) {
+      dispatch({
+        type: actionTypes.LOGIN,
+        payload: { token: session.token, user: session.user },
+      });
     }
   }, []);
 
   const login = (token, user) => {
+    console.log("Logging in with token:", token, "and user:", user);
+    if (!token || !user) {
+      console.error("Token or user is undefined in login function");
+      return;
+    }
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
-    dispatch({ type: "LOGIN", payload: { token, user } });
+    dispatch({ type: actionTypes.LOGIN, payload: { token, user } });
+    saveSession({ token, user });
+    console.log("Token saved:", token);
   };
 
   const logout = () => {
+    console.log("Logging out");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    dispatch({ type: "LOGOUT" });
+    dispatch({ type: actionTypes.LOGOUT });
+    saveSession(null);
   };
 
   const updateAuth = (token, user) => {
+    console.log("Updating auth with token:", token, "and user:", user);
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
-    dispatch({ type: "UPDATE_AUTH", payload: { token, user } });
+    dispatch({ type: actionTypes.UPDATE_AUTH, payload: { token, user } });
+    saveSession({ token, user });
+    console.log("Token update:", token);
   };
 
   return (
@@ -101,4 +116,6 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Користувацький хук для доступу до контексту
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  return useContext(AuthContext);
+};

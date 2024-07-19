@@ -22,18 +22,19 @@ const SignupConfirmPage = () => {
   const { user, updateAuth } = useAuth();
   const [values, setValues] = useState({});
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [alert, setAlert] = useState({ status: "", message: "" });
 
   useEffect(() => {
     const session = getSession();
-    if (session && session.user.isConfirm) {
-      navigate("/");
+    console.log("Session in useEffect:", session);
+    if (session && session.user?.isConfirm) {
+      navigate("/balance");
     } else if (!session) {
       navigate("/");
     }
-  }, [navigate]);
+  }, [navigate, user]);
 
   const validate = (name, value) => {
     if (String(value).length < 1) {
@@ -44,13 +45,14 @@ const SignupConfirmPage = () => {
     }
     return null;
   };
+
   const handleChange = (name, value) => {
     const error = validate(name, value);
     setValues((prevValues) => ({
       ...prevValues,
       [name]: value,
     }));
-    setError((prevErrors) => ({
+    setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: error,
     }));
@@ -58,69 +60,88 @@ const SignupConfirmPage = () => {
   };
 
   const checkDisabled = () => {
-    let disabled = false;
+    let isDisabled = false;
     Object.values(FIELD_NAME).forEach((name) => {
-      if (error[name] || values[name] === undefined) {
-        disabled = true;
+      if (errors[name] || !values[name]) {
+        isDisabled = true;
       }
     });
-    setDisabled(disabled);
+    setDisabled(isDisabled);
   };
+
+  useEffect(() => {
+    checkDisabled();
+  }, [values, errors]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (disabled) {
-      validateAll();
-    } else {
-      console.log(values);
-      setAlert({ status: "progress", message: "Завантаження..." });
-      try {
-        const response = await fetch("http://localhost:4000/signup-confirm", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            [FIELD_NAME.CODE]: Number(values[FIELD_NAME.CODE]),
-            token: getTokenSession(),
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setAlert({ status: "success", message: data.message });
-          saveSession(data.session);
-          updateAuth(data.token, data.user);
-          navigate("/balance");
-        } else {
-          setError(data.message);
-          setAlert({ status: "error", message: data.message });
-        }
-      } catch (error) {
-        setError("Something went wrong. Please try again later.");
-        setAlert({ status: "error", message: error.message });
+    console.log("Submitted values:", values);
+    if (!values[FIELD_NAME.CODE]) {
+      setAlert({ status: "error", message: "Invalid values or code" });
+      return;
+    }
+    setAlert({ status: "progress", message: "Завантаження..." });
+    try {
+      const code = Number(values[FIELD_NAME.CODE]);
+      if (isNaN(code)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [FIELD_NAME.CODE]: "Invalid code",
+        }));
+        setAlert({ status: "error", message: "Invalid code" });
+        return;
       }
+      const token = getTokenSession();
+      console.log("Token retrieved:", token);
+      if (!token) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          token: "Invalid token",
+        }));
+        setAlert({ status: "error", message: "Invalid token" });
+        return;
+      }
+      const response = await fetch("http://localhost:4000/signup-confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: values[FIELD_NAME.CODE],
+          token: token,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Response data:", data);
+      if (response.ok) {
+        setAlert({ status: "success", message: data.message });
+        saveSession(data.session);
+        updateAuth(data.session.token, data.session.user);
+        navigate("/balance");
+      } else {
+        console.error("API error:", data.message);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          api: data.message,
+        }));
+        setAlert({ status: "error", message: data.message });
+      }
+    } catch (error) {
+      console.error("Network or server error:", error);
+      setAlert({
+        status: "error",
+        message: "Something went wrong. Please try again later.",
+      });
     }
   };
-  if (user.confirm) {
-    navigate("/balance");
-  }
-  const validateAll = () => {
-    const newErrors = {};
-    Object.values(FIELD_NAME).forEach((name) => {
-      const error = validate(name, values[name]);
-      if (error) {
-        newErrors[name] = error;
-      }
-    });
-    setError(newErrors);
-  };
-  const handleRenew = (e) => {
-    e.preventDefault();
+  const handleRenew = () => {
     const session = getSession();
-    navigate(`/signup-confirm?renew=true&email=${session.user.email}`);
+    if (session && session.user) {
+      navigate(`/signup-confirm?renew=true&email=${session.user.email}`);
+    }
   };
+
   return (
     <Page>
       <Header
@@ -133,18 +154,19 @@ const SignupConfirmPage = () => {
             label={"Code:"}
             placeholder={"Input your code"}
             htmlFor={FIELD_NAME.CODE}
+            id={FIELD_NAME.CODE}
             value={values[FIELD_NAME.CODE] || ""}
             onChange={(e) => handleChange(FIELD_NAME.CODE, e.target.value)}
           />
-          {error[FIELD_NAME.CODE] && <span>{error[FIELD_NAME.CODE]}</span>}
+          {errors[FIELD_NAME.CODE] && <span>{errors[FIELD_NAME.CODE]}</span>}
         </div>
         <Button
+          onClick={handleRenew}
           className={"button button__dark"}
           text={"Continue"}
           type="submit"
           disabled={disabled}
           id="renew"
-          onClick={handleRenew}
         />
         {alert.status && (
           <Alert status={`${alert.status}`} message={alert.message} />
@@ -153,4 +175,5 @@ const SignupConfirmPage = () => {
     </Page>
   );
 };
+
 export default SignupConfirmPage;

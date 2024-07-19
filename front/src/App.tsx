@@ -1,6 +1,6 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuth } from "./AuthProvider";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./AuthProvider";
 import AuthRoute from "./AuthRoute";
 import PrivateRoute from "./PrivateRoute";
 import WellcomePage from "./pages/wellcom";
@@ -20,7 +20,7 @@ import { ErrorPage } from "./pages/error";
 const App = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
           <Route index element={<WellcomePage />} />
           <Route
@@ -34,9 +34,9 @@ const App = () => {
           <Route
             path="/signup-confirm"
             element={
-              <PrivateRoute>
+              <AuthRoute>
                 <SignupConfirmPage />
-              </PrivateRoute>
+              </AuthRoute>
             }
           />
           <Route
@@ -113,7 +113,7 @@ const App = () => {
           />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
     </AuthProvider>
   );
 };
