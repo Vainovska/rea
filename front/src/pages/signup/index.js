@@ -1,4 +1,7 @@
-import "./index.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { saveSession } from "../../session";
+import { useAuth } from "../../AuthProvider";
 import Page from "../../component/page";
 import Header from "../../component/header";
 import FieldEmail from "../../component/field-email";
@@ -6,10 +9,8 @@ import FieldPassword from "../../component/field-password";
 import Button from "../../component/button";
 import LinkHref from "../../component/link";
 import { Alert } from "../../component/alert";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { saveSession } from "../../session";
-import { useAuth } from "../../AuthProvider";
+import "./index.css";
+
 const REG_EXP_EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$/;
 const REG_EXP_PASSWORD = /^(?=.*\d)(?=.*[a-z])(?=.*[a-zA-Z]).{8,}$/;
 
@@ -34,9 +35,13 @@ const SignupForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [values, setValues] = useState({});
-  const [error, setError] = useState("");
+  const [error, setError] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [alert, setAlert] = useState({ status: "", message: "" });
+
+  useEffect(() => {
+    checkDisabled();
+  }, [values, error]);
 
   const validate = (name, value) => {
     if (String(value).length < 1) {
@@ -45,64 +50,62 @@ const SignupForm = () => {
     if (String(value).length > 20) {
       return FIELD_ERROR.IS_BIG;
     }
-    if (name === FIELD_NAME.EMAIL) {
-      if (!REG_EXP_EMAIL.test(String(value))) {
-        return FIELD_ERROR.EMAIL;
-      }
+    if (name === FIELD_NAME.EMAIL && !REG_EXP_EMAIL.test(String(value))) {
+      return FIELD_ERROR.EMAIL;
     }
-    if (name === FIELD_NAME.PASSWORD) {
-      if (!REG_EXP_PASSWORD.test(String(value))) {
-        return FIELD_ERROR.PASSWORD;
-      }
+    if (name === FIELD_NAME.PASSWORD && !REG_EXP_PASSWORD.test(String(value))) {
+      return FIELD_ERROR.PASSWORD;
     }
-    if (name === FIELD_NAME.PASSWORD_AGAIN) {
-      if (String(value) !== values[FIELD_NAME.PASSWORD]) {
-        return FIELD_ERROR.PASSWORD_AGAIN;
-      }
+    if (
+      name === FIELD_NAME.PASSWORD_AGAIN &&
+      String(value) !== values[FIELD_NAME.PASSWORD]
+    ) {
+      return FIELD_ERROR.PASSWORD_AGAIN;
     }
-    if (name === FIELD_NAME.IS_AGREE) {
-      if (!Boolean(value)) {
-        return FIELD_ERROR.NOT_AGREE;
-      }
+    if (name === FIELD_NAME.IS_AGREE && !Boolean(value)) {
+      return FIELD_ERROR.NOT_AGREE;
     }
-
     return null;
   };
+
   const handleChange = (name, value) => {
-    console.log(`handleChange: ${name} = ${value}`);
-    const error = validate(name, value);
+    const validationError = validate(name, value);
     setValues((prevValues) => ({
       ...prevValues,
       [name]: value,
     }));
     setError((prevErrors) => ({
       ...prevErrors,
-      [name]: error,
+      [name]: validationError,
     }));
-    checkDisabled();
   };
+
   const checkDisabled = () => {
-    let disabled = false;
+    let formIsDisabled = false;
     Object.values(FIELD_NAME).forEach((name) => {
       if (error[name] || values[name] === undefined) {
-        disabled = true;
+        formIsDisabled = true;
       }
     });
-    setDisabled(disabled);
-    console.log(`checkDisabled: ${disabled}`);
+    setDisabled(formIsDisabled);
   };
-  const handelClick = () => {
+
+  const handleClick = () => {
     navigate("/signin");
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Form values:", values);
+    console.log("Form errors:", error);
+
     if (disabled) {
       validateAll();
-    } else {
-      console.log(values);
-
-      setAlert({ status: "progress", message: "Завантаження..." });
+      return;
     }
+
+    setAlert({ status: "progress", message: "Завантаження..." });
 
     try {
       const response = await fetch("http://localhost:4000/signup", {
@@ -139,12 +142,13 @@ const SignupForm = () => {
       setAlert({ status: "error", message: error.message });
     }
   };
+
   const validateAll = () => {
     const newErrors = {};
     Object.values(FIELD_NAME).forEach((name) => {
-      const error = validate(name, values[name]);
-      if (error) {
-        newErrors[name] = error;
+      const validationError = validate(name, values[name]);
+      if (validationError) {
+        newErrors[name] = validationError;
       }
     });
     setError(newErrors);
@@ -154,7 +158,7 @@ const SignupForm = () => {
     <Page>
       <Header title={"Sign Up"} description={"Choose a registration method"} />
       <form className="form" onSubmit={handleSubmit}>
-        <div className="form__item ">
+        <div className="form__item">
           <FieldEmail
             label={"Email:"}
             placeholder={"Input your e-mail"}
@@ -163,7 +167,7 @@ const SignupForm = () => {
           />
           {error[FIELD_NAME.EMAIL] && <span>{error[FIELD_NAME.EMAIL]}</span>}
         </div>
-        <div className="form__item ">
+        <div className="form__item">
           <FieldPassword
             label={"Password:"}
             placeholder={"Input your password"}
@@ -174,7 +178,7 @@ const SignupForm = () => {
             <span>{error[FIELD_NAME.PASSWORD]}</span>
           )}
         </div>
-        <div className="form__item ">
+        <div className="form__item">
           <FieldPassword
             label={"Password again:"}
             placeholder={"Input your password again"}
@@ -187,13 +191,12 @@ const SignupForm = () => {
             <span>{error[FIELD_NAME.PASSWORD_AGAIN]}</span>
           )}
         </div>
-
         <LinkHref
           text={"Already have an account?"}
           name={"Sign In"}
-          onClick={handelClick}
+          onClick={handleClick}
         />
-        <div className="form__item ">
+        <div className="form__item">
           <label htmlFor="isConfirm">
             <input
               type="checkbox"
@@ -222,4 +225,5 @@ const SignupForm = () => {
     </Page>
   );
 };
+
 export default SignupForm;

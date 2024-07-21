@@ -1,46 +1,55 @@
-// Підключаємо роутер до бек-енду
 const express = require('express')
 const router = express.Router()
 const { Notification } = require('../class/notification')
 const { Balance } = require('../class/balance')
-// Підключіть файли роутів
+
+// Import route modules
 const auth = require('./auth')
 const setting = require('./setting')
 const transaction = require('./transaction')
-// Підключіть інші файли роутів, якщо є
 
-// Об'єднайте файли роутів за потреби
+// Use imported route modules
 router.use('/', auth)
 router.use('/', setting)
 router.use('/', transaction)
-// Використовуйте інші файли роутів, якщо є
 
+// Example route
 router.get('/', (req, res) => {
   res.status(200).json('Hello World')
 })
+
+// Protected routes
+
 router.get('/notification', (req, res) => {
   try {
-    const notification = Notification.getById(req.user.id)
-    res.status(200).json(notification)
+    const notifications = Notification.getByUserId(
+      req.user.id,
+    )
+    res.status(200).json(notifications)
   } catch (error) {
-    res.status(400).json({ message: 'немає жодних змін' })
+    console.error('Error fetching notifications:', error)
+    res
+      .status(500)
+      .json({ message: 'Failed to fetch notifications' })
   }
 })
+
 router.get('/balance', (req, res) => {
   try {
     const balance = Balance.getById(req.user.id)
     if (!balance) {
       return res
-        .status(400)
+        .status(404)
         .json({ message: 'Balance not found' })
     }
     res.status(200).json(balance)
   } catch (error) {
+    console.error('Error fetching balance:', error)
     res
-      .status(400)
-      .json({ message: 'Something went wrong' })
+      .status(500)
+      .json({ message: 'Failed to fetch balance' })
   }
 })
 
-// Експортуємо глобальний роутер
+// Export the main router
 module.exports = router

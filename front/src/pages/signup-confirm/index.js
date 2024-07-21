@@ -1,13 +1,12 @@
-import "../signup/index.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthProvider";
+import { saveSession, getTokenSession, getSession } from "../../session";
 import Page from "../../component/page";
 import Header from "../../component/header";
 import Field from "../../component/field";
 import Button from "../../component/button";
 import { Alert } from "../../component/alert";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../AuthProvider";
-import { saveSession, getTokenSession, getSession } from "../../session";
 
 const FIELD_NAME = {
   CODE: "code",
@@ -28,15 +27,16 @@ const SignupConfirmPage = () => {
 
   useEffect(() => {
     const session = getSession();
-    console.log("Session in useEffect:", session);
-    if (session && session.user?.isConfirm) {
+    if (session && !session.user.isConfirm) {
+      navigate("/signup-confirm");
+    } else if (session && session.user.isConfirm) {
       navigate("/balance");
-    } else if (!session) {
+    } else {
       navigate("/");
     }
-  }, [navigate, user]);
+  }, [navigate]);
 
-  const validate = (name, value) => {
+  function validate(value) {
     if (String(value).length < 1) {
       return FIELD_ERROR.IS_EMPTY;
     }
@@ -44,10 +44,10 @@ const SignupConfirmPage = () => {
       return FIELD_ERROR.IS_BIG;
     }
     return null;
-  };
+  }
 
   const handleChange = (name, value) => {
-    const error = validate(name, value);
+    const error = validate(value);
     setValues((prevValues) => ({
       ...prevValues,
       [name]: value,
@@ -68,10 +68,6 @@ const SignupConfirmPage = () => {
     });
     setDisabled(isDisabled);
   };
-
-  useEffect(() => {
-    checkDisabled();
-  }, [values, errors]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,6 +131,7 @@ const SignupConfirmPage = () => {
       });
     }
   };
+
   const handleRenew = () => {
     const session = getSession();
     if (session && session.user) {

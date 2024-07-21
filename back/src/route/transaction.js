@@ -1,39 +1,50 @@
-// Підключаємо роутер до бек-енду
 const express = require('express')
 const router = express.Router()
-const { Notification } = require('../class/notification')
-const { User } = require('../class/user')
 const { Transaction } = require('../class/transaction')
-const { Session } = require('../class/session')
-// Підключіть файли роутів
-// Підключіть інші файли роутів, якщо є
+const { User } = require('../class/user')
+const { Notification } = require('../class/notification')
+const authenticateUser = require('../middlware/authenticateUser')
 
-// Об'єднайте файли роутів за потреби
-// Використовуйте інші файли роутів, якщо є
-const authenticateUser = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1]
-  if (!token)
-    return res
-      .status(401)
-      .json({ message: 'No token provided' })
+// Helper function to create transaction and notification
+// const createTransactionAndNotification = async (
+//   user,
+//   type,
+//   amount,
+//   message,
+// ) => {
+//   const transaction = new Transaction({
+//     user: user.id,
+//     type,
+//     amount,
+//     status: 'completed',
+//   })
+//   await transaction.save()
 
-  const session = Session.get(token)
-  if (!session)
-    return res
-      .status(401)
-      .json({ message: 'Invalid token' })
+//   const notification = new Notification({
+//     user: user.id,
+//     message,
+//   })
+//   await notification.save()
 
-  req.user = session.user
-  next()
-}
+//   return { transaction, notification }
+// }
 
-router.use(authenticateUser)
-
+// Use authentication middleware for all routes in this file
+router.get('/transactions', async (req, res) => {
+  try {
+    const transactions = await Transaction.getList() // Assuming getList() is an async function
+    res.json(transactions)
+  } catch (err) {
+    console.error('Error fetching transactions:', err)
+    res
+      .status(500)
+      .json({ message: 'Internal Server Error' })
+  }
+})
 router.post('/recive', (req, res) => {
   try {
     const { amount, paymentMethod } = req.body
 
-    // Create a new transaction
     const transaction = new Transaction({
       user: req.user.id,
       type: 'recive',
@@ -43,11 +54,9 @@ router.post('/recive', (req, res) => {
     })
     transaction.save()
 
-    // Update user's balance
     req.user.balance += amount
     req.user.save()
 
-    // Create a new notification
     const notification = new Notification({
       user: req.user.id,
       message: `Balance topped up by ${amount} using ${paymentMethod}`,
@@ -60,6 +69,7 @@ router.post('/recive', (req, res) => {
       notification,
     })
   } catch (error) {
+    console.error('Error in /recive:', error)
     res
       .status(500)
       .json({ message: 'Something went wrong' })
@@ -83,7 +93,6 @@ router.post('/send', (req, res) => {
         .json({ message: 'Insufficient balance' })
     }
 
-    // Create transaction for sender
     const senderTransaction = new Transaction({
       user: req.user.id,
       type: 'send',
@@ -92,18 +101,15 @@ router.post('/send', (req, res) => {
     })
     senderTransaction.save()
 
-    // Create notification for sender
     const senderNotification = new Notification({
       user: req.user.id,
       message: `You sent ${amount} to ${email}`,
     })
     senderNotification.save()
 
-    // Update sender's balance
     req.user.balance -= amount
     req.user.save()
 
-    // Create transaction for recipient
     const recipientTransaction = new Transaction({
       user: recipient.id,
       type: 'recive',
@@ -112,14 +118,12 @@ router.post('/send', (req, res) => {
     })
     recipientTransaction.save()
 
-    // Create notification for recipient
     const recipientNotification = new Notification({
-      user: recipient._id,
+      user: recipient.id,
       message: `You received ${amount} from ${req.user.email}`,
     })
     recipientNotification.save()
 
-    // Update recipient's balance
     recipient.balance += amount
     recipient.save()
 
@@ -127,39 +131,39 @@ router.post('/send', (req, res) => {
       .status(200)
       .json({ message: 'Transfer completed successfully' })
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: 'Something went wrong' })
-  }
-})
-
-router.get('/:transactionId', (req, res) => {
-  try {
-    const transaction = Transaction.getById(
-      req.params.transactionId,
-    )
-
-    if (!transaction) {
-      return res
-        .status(400)
-        .json({ message: 'Transaction not found' })
-    }
-
-    // Ensure the requester owns the transaction
-    if (
-      transaction.user.toString() !== req.user.id.toString()
-    ) {
-      return res
-        .status(400)
-        .json({ message: 'Unauthorized' })
-    }
-
-    res.status(200).json(transaction)
-  } catch (error) {
+    console.error('Error in /send:', error)
     res
       .status(500)
       .json({ message: 'Something went wrong' })
   }
 })
-// Експортуємо глобальний роутер
+
+router.get('/:transactionId', async (req, res) => {
+  try {
+    const transaction = await Transaction.getById(
+      req.params.transactionId,
+    )
+
+    if (!transaction) {
+      return res
+        .status(404)
+        .json({ message: 'Transaction not found' })
+    }
+
+    if (
+      transaction.user.toString() !== req.user.id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized' })
+    }
+
+    res.status(200).json(transaction)
+  } catch (error) {
+    console.error('Error in /:transactionId:', error)
+    res
+      .status(500)
+      .json({ message: 'Something went wrong' })
+  }
+})
 module.exports = router

@@ -1,17 +1,17 @@
-import React, { createContext, useReducer, useContext } from "react";
-import { useEffect } from "react";
+import React, { createContext, useReducer, useContext, useEffect } from "react";
 import { saveSession, loadSession } from "./session";
 
-// Ініціалізація контексту
+// Initialize context
 export const AuthContext = createContext();
 
-// Початковий стан
+// Initial state
 const initialState = {
   token: null,
   user: null,
+  balance: 0,
 };
 
-// Типи дій
+// Action types
 const actionTypes = {
   LOGIN: "LOGIN",
   LOGOUT: "LOGOUT",
@@ -21,7 +21,7 @@ const actionTypes = {
   UPDATE_PASSWORD: "UPDATE_PASSWORD",
 };
 
-// Редюсер
+// Reducer
 const authReducer = (state, action) => {
   switch (action.type) {
     case actionTypes.LOGIN:
@@ -29,7 +29,7 @@ const authReducer = (state, action) => {
         ...state,
         token: action.payload.token,
         user: action.payload.user,
-        balance: action.payload.balance,
+        balance: action.payload.balance || 0,
       };
     case actionTypes.LOGOUT:
       return {
@@ -43,12 +43,12 @@ const authReducer = (state, action) => {
         ...state,
         token: action.payload.token,
         user: action.payload.user,
-        balance: action.payload.balance,
+        balance: action.payload.balance || state.balance,
       };
     case actionTypes.UPDATE_BALANCE:
       return {
         ...state,
-        user: { ...state.user, balance: action.payload },
+        balance: action.payload,
       };
     case actionTypes.UPDATE_EMAIL:
       return {
@@ -65,47 +65,44 @@ const authReducer = (state, action) => {
   }
 };
 
-// Провайдер контексту
+// Context provider
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+
   useEffect(() => {
     const session = loadSession();
     if (session) {
       dispatch({
         type: actionTypes.LOGIN,
-        payload: { token: session.token, user: session.user },
+        payload: {
+          token: session.token,
+          user: session.user,
+          balance: session.balance,
+        },
       });
     }
   }, []);
 
-  const login = (token, user) => {
-    console.log("Logging in with token:", token, "and user:", user);
+  const login = (token, user, balance = 0) => {
     if (!token || !user) {
       console.error("Token or user is undefined in login function");
       return;
     }
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    dispatch({ type: actionTypes.LOGIN, payload: { token, user } });
-    saveSession({ token, user });
-    console.log("Token saved:", token);
+    dispatch({ type: actionTypes.LOGIN, payload: { token, user, balance } });
+    saveSession({ token, user, balance });
   };
 
   const logout = () => {
-    console.log("Logging out");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
     dispatch({ type: actionTypes.LOGOUT });
     saveSession(null);
   };
 
-  const updateAuth = (token, user) => {
-    console.log("Updating auth with token:", token, "and user:", user);
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    dispatch({ type: actionTypes.UPDATE_AUTH, payload: { token, user } });
-    saveSession({ token, user });
-    console.log("Token update:", token);
+  const updateAuth = (token, user, balance = 0) => {
+    dispatch({
+      type: actionTypes.UPDATE_AUTH,
+      payload: { token, user, balance },
+    });
+    saveSession({ token, user, balance });
   };
 
   return (
@@ -115,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Користувацький хук для доступу до контексту
+// Custom hook for accessing the auth context
 export const useAuth = () => {
   return useContext(AuthContext);
 };

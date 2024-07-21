@@ -6,11 +6,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../AuthProvider";
 
-const TransactionPage = () => {
-  const { transactionId } = useParams();
+// Custom hook for fetching transaction data
+const useTransaction = (transactionId, token, navigate) => {
   const [transaction, setTransaction] = useState(null);
-  const { authState } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTransaction = async () => {
@@ -19,37 +18,58 @@ const TransactionPage = () => {
           `http://localhost:4000/transactions/${transactionId}`,
           {
             headers: {
-              Authorization: `Bearer ${authState.token}`,
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           }
         );
+
         const data = await response.json();
 
-        if (response.ok) {
-          if (data.amount && data.createdAt && data.id && data.type) {
-            setTransaction(data);
-          } else {
-            console.error("Invalid transaction data:", data);
-            alert("Invalid transaction data received");
-            navigate("/balance");
-          }
+        if (!response.ok) {
+          throw new Error(data.message || "Error fetching transaction");
+        }
+
+        if (data.amount && data.createdAt && data.id && data.type) {
+          setTransaction(data);
         } else {
-          console.error("Server error:", data.message);
-          alert(data.message);
+          console.error("Invalid transaction data:", data);
+          alert("Invalid transaction data received");
           navigate("/balance");
         }
       } catch (error) {
         console.error("Error fetching transaction:", error);
         alert("Error fetching transaction");
         navigate("/balance");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchTransaction();
-  }, [transactionId, authState.token, navigate]);
+  }, [transactionId, token, navigate]);
+
+  return { transaction, loading };
+};
+
+// TransactionPage Component
+const TransactionPage = () => {
+  const { transactionId } = useParams();
+  const { authState } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const { transaction, loading } = useTransaction(
+    transactionId,
+    authState.token,
+    navigate
+  );
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (!transaction) {
-    return <div>Loading...</div>;
+    return <div>Error loading transaction</div>;
   }
 
   return (

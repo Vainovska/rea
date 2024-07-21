@@ -37,7 +37,7 @@ router.get('/signup', function (req, res) {
     data: {},
   })
 })
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
   const { email, password } = req.body
 
   if (!email || !password) {
@@ -47,43 +47,43 @@ router.post('/signup', (req, res) => {
   }
 
   try {
-    const existingUser = User.getByEmail(email)
+    const existingUser = await User.getByEmail(email)
     if (existingUser) {
       return res.status(400).json({
         message:
-          'Користувач с таким e-mail вже зареєстрований',
+          'Помилка. Користувач с таким email вже існує',
       })
     }
 
-    const newUser = User.create({ email, password })
-    console.log(newUser)
-    const session = Session.create(newUser)
-    console.log(session.token)
-    Confirm.create(newUser.email)
+    const newUser = await User.create({ email, password })
+    const session = await Session.create(newUser)
     const notification = new Notification({
       userId: newUser.id,
       type: 'signup',
-      message: 'Ви успішно створили аккаунт.',
+      message: 'Ви успішно зареєструвалися.',
     })
+    // Create confirmation code
+    const confirmation = Confirm.create(user.email)
+    console.log(
+      'Confirmation code created:',
+      confirmation.code,
+    )
 
     return res.status(200).json({
-      message: 'Користувач успішно зареєстрований',
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        isConfirm: newUser.isConfirm,
-      },
-      session: session.token,
+      message: 'Ви успішно зареєструвалися',
+      session,
+      user: newUser,
       notification,
+      confirmationCode: confirmation.code, // Send code for debugging purposes
     })
-  } catch (error) {
-    console.error('Error during signup:', error)
-    return res.status(500).json({
-      message: `Помилка сервера: ${error.message}`,
-    })
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: `Помилка сервера: ${err.message}` })
   }
 })
 
+// GET route
 router.get('/signup-confirm', function (req, res) {
   const { renew, email } = req.query
   console.log('Renew request:', renew, 'Email:', email)
@@ -99,6 +99,8 @@ router.get('/signup-confirm', function (req, res) {
     data: {},
   })
 })
+
+// POST route
 router.post('/signup-confirm', function (req, res) {
   const { code, token } = req.body
   console.log({ code, token })
@@ -119,7 +121,6 @@ router.post('/signup-confirm', function (req, res) {
       })
     }
 
-    console.log('Provided code:', code)
     const email = Confirm.getData(code)
     console.log('Returned email:', email)
 
@@ -139,6 +140,7 @@ router.post('/signup-confirm', function (req, res) {
     user.isConfirm = true
     session.user.isConfirm = true
     Session.save(token, session)
+
     const notification = new Notification({
       userId: user.id,
       type: 'signupConfirm',
@@ -165,7 +167,7 @@ router.get('/signin', function (req, res) {
     data: {},
   })
 })
-router.post('/signin', (req, res) => {
+router.post('/signin', async (req, res) => {
   const { email, password } = req.body
 
   if (!email || !password) {
@@ -175,7 +177,7 @@ router.post('/signin', (req, res) => {
   }
 
   try {
-    const user = User.getByEmail(email)
+    const user = await User.getByEmail(email)
     if (!user) {
       return res.status(400).json({
         message:
@@ -188,7 +190,7 @@ router.post('/signin', (req, res) => {
         .json({ message: 'Не вірний пароль' })
     }
 
-    const session = Session.create(user)
+    const session = await Session.create(user)
     const notification = new Notification({
       userId: user.id,
       type: 'signin',
@@ -206,6 +208,7 @@ router.post('/signin', (req, res) => {
       .json({ message: `Помилка сервера: ${err.message}` })
   }
 })
+
 router.get('/recovery', function (req, res) {
   return res.render('recovery', {
     name: 'recovery',

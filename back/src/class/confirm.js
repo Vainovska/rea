@@ -1,3 +1,4 @@
+// Confirm class
 class Confirm {
   static #list = []
 
@@ -18,7 +19,7 @@ class Confirm {
     setTimeout(() => {
       this.delete(confirmation.code)
     }, 24 * 60 * 60 * 1000) // 24 hours
-    return confirmation // Return the code for debugging
+    return confirmation
   }
 
   static delete(code) {
@@ -35,8 +36,6 @@ class Confirm {
 
   static getData(code) {
     console.log('Getting data for code:', code)
-    console.log('Type of code:', typeof code)
-    console.log('Current list:', this.#list)
     const obj = this.#list.find(
       (item) => item.code === Number(code),
     )
