@@ -87,7 +87,8 @@ const SignupConfirmPage = () => {
         setAlert({ status: "error", message: "Invalid code" });
         return;
       }
-      const token = getTokenSession();
+      const session = getTokenSession();
+      const token = session.token; // Ensure we're using the correct token format
       console.log("Token retrieved:", token);
       if (!token) {
         setErrors((prevErrors) => ({
@@ -104,7 +105,7 @@ const SignupConfirmPage = () => {
         },
         body: JSON.stringify({
           code: values[FIELD_NAME.CODE],
-          token: token,
+          token: token, // Sending the correct token format
         }),
       });
 

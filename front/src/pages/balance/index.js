@@ -40,25 +40,40 @@ const BalancePage = () => {
   if (!token) {
     return <div>Loading...</div>;
   }
-
+  const handleNotification = () => {
+    navigate("/notification");
+  };
+  const handleSetting = () => {
+    navigate("/setting");
+  };
+  const handleReceive = () => {
+    navigate("/recive");
+  };
+  const handleSend = () => {
+    navigate("/send");
+  };
   return (
     <Page>
       <header className="balance__header">
         <div className="header__top">
-          <span className="icon icon__setting"></span>
+          <button onClick={handleSetting}>
+            <span className="icon icon__setting"></span>
+          </button>
           <span className="header__title">Main wallet</span>
-          <span className="icon icon__notification"></span>
+          <button onClick={handleNotification}>
+            <span className="icon icon__notification"></span>
+          </button>
         </div>
         <div className="balance">{user?.balance}</div>
         <div className="list-button">
           <div className="item-button">
-            <button className="button__balance">
+            <button onClick={handleReceive} className="button__balance">
               <span className="button__receive"></span>
             </button>
             <span className="button__text">Receive</span>
           </div>
           <div className="item-button">
-            <button className="button__balance">
+            <button onClick={handleSend} className="button__balance">
               <span className="button__send"></span>
             </button>
             <span>Send</span>

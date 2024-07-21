@@ -7,27 +7,6 @@ const { User } = require('../class/user')
 const { Confirm } = require('../class/confirm')
 const { Session } = require('../class/session')
 const { Notification } = require('../class/notification')
-const user = {
-  email: 'test1@mail.com',
-  isConfirm: false,
-  id: 1,
-}
-
-// Creating a new session for the user
-const newSession = Session.create(user)
-console.log('New Session:', newSession)
-
-// Retrieving the session using the token
-const retrievedSession = Session.get(newSession.token)
-console.log('Retrieved Session:', retrievedSession)
-
-// Updating the session
-retrievedSession.user.isConfirm = true
-Session.save(newSession.token, retrievedSession)
-
-// Verifying the session is updated
-const updatedSession = Session.get(newSession.token)
-console.log('Updated Session:', updatedSession)
 
 // ================================================================
 router.get('/signup', function (req, res) {
@@ -37,7 +16,7 @@ router.get('/signup', function (req, res) {
     data: {},
   })
 })
-router.post('/signup', async (req, res) => {
+router.post('/signup', function (req, res) {
   const { email, password } = req.body
 
   if (!email || !password) {
@@ -47,7 +26,7 @@ router.post('/signup', async (req, res) => {
   }
 
   try {
-    const existingUser = await User.getByEmail(email)
+    const existingUser = User.getByEmail(email)
     if (existingUser) {
       return res.status(400).json({
         message:
@@ -55,15 +34,15 @@ router.post('/signup', async (req, res) => {
       })
     }
 
-    const newUser = await User.create({ email, password })
-    const session = await Session.create(newUser)
+    const newUser = User.create({ email, password })
+    const session = Session.create(newUser)
     const notification = new Notification({
       userId: newUser.id,
       type: 'signup',
       message: 'Ви успішно зареєструвалися.',
     })
     // Create confirmation code
-    const confirmation = Confirm.create(user.email)
+    const confirmation = Confirm.create(newUser.email)
     console.log(
       'Confirmation code created:',
       confirmation.code,
@@ -121,6 +100,7 @@ router.post('/signup-confirm', function (req, res) {
       })
     }
 
+    console.log('Provided code:', code)
     const email = Confirm.getData(code)
     console.log('Returned email:', email)
 
@@ -140,7 +120,6 @@ router.post('/signup-confirm', function (req, res) {
     user.isConfirm = true
     session.user.isConfirm = true
     Session.save(token, session)
-
     const notification = new Notification({
       userId: user.id,
       type: 'signupConfirm',
@@ -167,42 +146,44 @@ router.get('/signin', function (req, res) {
     data: {},
   })
 })
-router.post('/signin', async (req, res) => {
+router.post('/signin', function (req, res) {
   const { email, password } = req.body
+  console.log('Sign-in attempt:', { email, password })
 
   if (!email || !password) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні",
+      message: `Помилка. Обов'язкові поля відсутні`,
     })
   }
 
   try {
-    const user = await User.getByEmail(email)
+    const user = User.getByEmail(email)
     if (!user) {
       return res.status(400).json({
-        message:
-          'Помилка. Користувач с таким email не існує',
+        message: `Користувач не знайдений`,
       })
     }
+
     if (user.password !== password) {
-      return res
-        .status(400)
-        .json({ message: 'Не вірний пароль' })
+      return res.status(400).json({
+        message: `Невірний пароль`,
+      })
     }
 
-    const session = await Session.create(user)
+    const session = Session.create(user)
     const notification = new Notification({
       userId: user.id,
       type: 'signin',
-      message: 'Ви успішно увійшли в акаунт.',
+      message: 'Ви успішно увійшли в систему.',
     })
 
     return res.status(200).json({
-      message: 'Ви увійшли',
+      message: 'Ви успішно увійшли в систему',
       session,
       notification,
     })
   } catch (err) {
+    console.error('Server error:', err)
     return res
       .status(500)
       .json({ message: `Помилка сервера: ${err.message}` })

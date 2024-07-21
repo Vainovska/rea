@@ -76,17 +76,17 @@ const SigninPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formValues), // Використання правильного формату передачі даних
+        body: JSON.stringify(formValues),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        login(data.token, data.user);
-        saveSession(data.session);
+        login(data.session.token, data.session.user);
+        saveSession(data.session.token); // Assuming saveSession saves the token
         setAlert({ status: "success", message: data.message });
 
-        if (data.user.confirm) {
+        if (data.session.user.isConfirm) {
           navigate("/balance");
         } else {
           navigate("/signup-confirm");

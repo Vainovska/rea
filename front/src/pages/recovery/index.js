@@ -14,6 +14,7 @@ const FIELD_ERROR = {
   IS_BIG: "Дуже довге значення",
   EMAIL: "Введіть коректне значення e-mail адреси",
 };
+
 const RecoveryPage = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +34,7 @@ const RecoveryPage = () => {
     }
     return null;
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validate(email);
@@ -68,6 +70,7 @@ const RecoveryPage = () => {
       setIsLoading(false);
     }
   };
+
   return (
     <Page>
       <Header
@@ -85,12 +88,13 @@ const RecoveryPage = () => {
           />
           {error && <span className="form__error">{error}</span>}
         </div>
+        <Button
+          type="submit"
+          className={"button button__dark"}
+          text={"Send code"}
+          disabled={isLoading}
+        />
       </form>
-      <Button
-        className={"button button__dark"}
-        text={"Send code"}
-        disabled={isLoading}
-      />
       {alert && (
         <Alert
           status={`${isLoading ? "progress" : "success"}`}
@@ -100,4 +104,5 @@ const RecoveryPage = () => {
     </Page>
   );
 };
+
 export default RecoveryPage;

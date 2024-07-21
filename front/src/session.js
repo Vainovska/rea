@@ -1,5 +1,4 @@
 export const SESSION_KEY = "sessionAuth";
-
 export const saveSession = (session) => {
   try {
     if (session) {
