@@ -32,11 +32,11 @@ class Session {
   }
 
   static get(token) {
-    console.log('Session.get called with token:', token)
+    console.log(`Session.get called with token: ${token}`)
     const session = Session.#list.find(
       (session) => session.token === token,
     )
-    console.log('Found session:', session)
+    console.log(`Session data for token ${token}:`, session)
     return session || null
   }
 

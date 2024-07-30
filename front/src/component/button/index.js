@@ -1,8 +1,9 @@
 import "./index.css";
-const Button = ({ onClick, text, className, disabled }) => {
+
+const Button = ({ onClick, text, className, disabled, type }) => {
   return (
     <button
-      type="submit"
+      type={type || "button"}
       className={className}
       onClick={onClick}
       disabled={disabled}
@@ -11,4 +12,5 @@ const Button = ({ onClick, text, className, disabled }) => {
     </button>
   );
 };
+
 export default Button;

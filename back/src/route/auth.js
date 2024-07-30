@@ -36,11 +36,12 @@ router.post('/signup', function (req, res) {
 
     const newUser = User.create({ email, password })
     const session = Session.create(newUser)
-    const notification = new Notification({
-      userId: newUser.id,
-      type: 'signup',
-      message: 'Ви успішно зареєструвалися.',
-    })
+    const notification = new Notification(
+      newUser.id,
+      'signup',
+      'Ви успішно зареєструвалися.',
+    )
+    console.log(notification)
     // Create confirmation code
     const confirmation = Confirm.create(newUser.email)
     console.log(
@@ -120,12 +121,12 @@ router.post('/signup-confirm', function (req, res) {
     user.isConfirm = true
     session.user.isConfirm = true
     Session.save(token, session)
-    const notification = new Notification({
-      userId: user.id,
-      type: 'signupConfirm',
-      message: 'Ви успішно підтвердили свою пошту.',
-    })
-
+    const notification = new Notification(
+      user.id,
+      'signupConfirm',
+      'Ви успішно підтвердили свою пошту.',
+    )
+    console.log(notification)
     return res.status(200).json({
       message: 'Ви підтвердили свою пошту',
       session,
@@ -171,12 +172,12 @@ router.post('/signin', function (req, res) {
     }
 
     const session = Session.create(user)
-    const notification = new Notification({
-      userId: user.id,
-      type: 'signin',
-      message: 'Ви успішно увійшли в систему.',
-    })
-
+    const notification = new Notification(
+      user.id,
+      'signin',
+      'Ви успішно увійшли в систему.',
+    )
+    console.log(notification)
     return res.status(200).json({
       message: 'Ви успішно увійшли в систему',
       session,
@@ -197,31 +198,39 @@ router.get('/recovery', function (req, res) {
     data: {},
   })
 })
-router.post('/recovery', function (req, res) {
+
+router.post('/recovery', async function (req, res) {
   const { email } = req.body
+
   if (!email) {
     return res.status(400).json({
       message: `Помилка. Обов'язкові поля відсутні`,
     })
   }
+
   try {
-    const user = User.getByEmail(email)
+    const user = await User.getByEmail(email) // Ensure this method is async if using async/await
+
     if (!user) {
       return res.status(400).json({
         message:
           'Користувач с таким e-mail не заєрестрований',
       })
     }
-    Confirm.create(email)
+
+    await Confirm.create(email) // Ensure this method is async if using async/await
+
     return res.status(200).json({
       message: 'Код для відновлення паролю відправлений',
     })
   } catch (err) {
-    return res.status(400).json({
-      message: err.message,
+    console.error('Error in /recovery:', err) // Add detailed logging
+    return res.status(500).json({
+      message: 'Internal Server Error',
     })
   }
 })
+
 router.get('/recovery-confirm', function (req, res) {
   return res.render('recovery-confirm', {
     name: 'recovery-confirm',
@@ -229,43 +238,55 @@ router.get('/recovery-confirm', function (req, res) {
     data: {},
   })
 })
-router.post('/recovery-confirm', function (req, res) {
+
+router.post('/recovery-confirm', async function (req, res) {
   const { password, code } = req.body
-  console.log(password, code)
+  console.log('Recovery Confirm:', { password, code })
+
   if (!code || !password) {
     return res.status(400).json({
       message: `Помилка. Обов'язкові поля відсутні`,
     })
   }
+
   try {
-    const email = Confirm.getData(Number(code))
+    const email = await Confirm.getData(Number(code)) // Ensure this method is async if using async/await
+
     if (!email) {
       return res.status(400).json({
         message: 'Код не існує',
       })
     }
-    const user = User.getByEmail(email)
+
+    const user = await User.getByEmail(email) // Ensure this method is async if using async/await
+
     if (!user) {
       return res.status(400).json({
         message: 'Користувач з таким e-mail не існує',
       })
     }
+
     user.password = password
-    console.log(user)
-    const session = Session.create(user)
-    const notification = new Notification({
-      userId: user._id,
-      type: 'accountRecovery',
-      message: 'Ви успішно відновили акаунт.',
-    })
+    console.log('Updated User:', user)
+
+    const session = await Session.create(user) // Ensure this method is async if using async/await
+
+    const notification = new Notification(
+      user.id,
+      'accountRecovery',
+      'Ви успішно відновили акаунт.',
+    )
+    console.log(notification)
+
     return res.status(200).json({
       message: 'Пароль змінено',
       session,
       notification,
     })
   } catch (err) {
-    return res.status(400).json({
-      message: err.message,
+    console.error('Error in /recovery-confirm:', err) // Add detailed logging
+    return res.status(500).json({
+      message: 'Internal Server Error',
     })
   }
 })

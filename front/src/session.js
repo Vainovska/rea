@@ -8,6 +8,7 @@ export const saveSession = (session) => {
     }
   } catch (err) {
     console.error("Failed to save session:", err);
+    throw err;
   }
 };
 
@@ -17,6 +18,7 @@ export const loadSession = () => {
     return session ? JSON.parse(session) : null;
   } catch (err) {
     console.error("Failed to load session:", err);
+
     return null;
   }
 };

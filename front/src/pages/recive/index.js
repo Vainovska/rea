@@ -9,7 +9,7 @@ const RecivePage = () => {
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const { authState, dispatch } = useContext(AuthContext);
-
+  const handleChange = (e) => setAmount(e.target.value);
   const handleRecive = async () => {
     try {
       const response = await fetch("/api/recive", {
@@ -37,47 +37,49 @@ const RecivePage = () => {
   return (
     <Page>
       <Header title={"Receive"} />
-      <div className="recive__item">
-        <h3 className="recive__title">Receive amount</h3>
-        <Field
-          label="Input sum"
-          placeholder={"Input your sum"}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          disabled="none"
-        />
-      </div>
+      <form className="recive">
+        <div className="recive__item">
+          <h3 className="recive__title">Receive amount</h3>
+          <Field
+            label="Input sum"
+            placeholder={"Input your sum"}
+            value={amount}
+            onChange={handleChange}
+            disabled="none"
+          />
+        </div>
 
-      <Divider />
-      <div className="recive__item">
-        <h3 className="recive__title">Payment system</h3>
-        <button onClick={handleRecive} className="recive__card">
-          <div
-            className="recive__card-item"
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            value="stripe"
-          >
-            <span className="recive__icon recive__icon--stripe"></span>
-            <h3 className="recive__title">Stripe</h3>
-          </div>
-          <div className="recive__card-item">
-            <span className="recive__icon recive__icon--stripe2"></span>
-          </div>
-        </button>
-        <button onClick={handleRecive} className="recive__card">
-          <div
-            className="recive__card-item"
-            value="stripe2"
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <span className="recive__icon recive__icon--coin"></span>
-            <h3 className="recive__title">Coinbase</h3>
-          </div>
-          <div className="recive__card-item">
-            <span className="recive__icon recive__icon--coin2"></span>
-          </div>
-        </button>
-      </div>
+        <Divider />
+        <div className="recive__item">
+          <h3 className="recive__title">Payment system</h3>
+          <button onClick={handleRecive} className="recive__card">
+            <div
+              className="recive__card-item"
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              value="stripe"
+            >
+              <span className="recive__icon recive__icon--stripe"></span>
+              <h3 className="recive__title">Stripe</h3>
+            </div>
+            <div className="recive__card-item">
+              <span className="recive__icon recive__icon--stripe2"></span>
+            </div>
+          </button>
+          <button onClick={handleRecive} className="recive__card">
+            <div
+              className="recive__card-item"
+              value="stripe2"
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <span className="recive__icon recive__icon--coin"></span>
+              <h3 className="recive__title">Coinbase</h3>
+            </div>
+            <div className="recive__card-item">
+              <span className="recive__icon recive__icon--coin2"></span>
+            </div>
+          </button>
+        </div>
+      </form>
     </Page>
   );
 };

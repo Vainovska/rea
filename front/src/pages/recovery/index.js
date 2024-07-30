@@ -4,7 +4,7 @@ import Header from "../../component/header";
 import FieldEmail from "../../component/field-email";
 import Button from "../../component/button";
 import { Alert } from "../../component/alert";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const REG_EXP_EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$/;
@@ -57,8 +57,8 @@ const RecoveryPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        navigate("/recovery-confirm");
         setAlert(data.message);
+        navigate("/recovery-confirm");
       } else {
         setError(data.message);
         setAlert(data.message);
@@ -89,10 +89,10 @@ const RecoveryPage = () => {
           {error && <span className="form__error">{error}</span>}
         </div>
         <Button
-          type="submit"
           className={"button button__dark"}
           text={"Send code"}
           disabled={isLoading}
+          type="submit"
         />
       </form>
       {alert && (

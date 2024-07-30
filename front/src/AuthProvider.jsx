@@ -6,6 +6,7 @@ export const AuthContext = createContext();
 
 // Initial state
 const initialState = {
+  isAuthenticated: false,
   token: null,
   user: null,
   balance: 0,
@@ -27,6 +28,7 @@ const authReducer = (state, action) => {
     case actionTypes.LOGIN:
       return {
         ...state,
+        isAuthenticated: true,
         token: action.payload.token,
         user: action.payload.user,
         balance: action.payload.balance || 0,
@@ -34,6 +36,7 @@ const authReducer = (state, action) => {
     case actionTypes.LOGOUT:
       return {
         ...state,
+        isAuthenticated: false,
         token: null,
         user: null,
         balance: 0,
@@ -41,6 +44,7 @@ const authReducer = (state, action) => {
     case actionTypes.UPDATE_AUTH:
       return {
         ...state,
+        isAuthenticated: true,
         token: action.payload.token,
         user: action.payload.user,
         balance: action.payload.balance || state.balance,
@@ -56,10 +60,7 @@ const authReducer = (state, action) => {
         user: { ...state.user, email: action.payload },
       };
     case actionTypes.UPDATE_PASSWORD:
-      return {
-        ...state,
-        user: { ...state.user, password: action.payload },
-      };
+      return state;
     default:
       return state;
   }
@@ -88,7 +89,10 @@ export const AuthProvider = ({ children }) => {
       console.error("Token or user is undefined in login function");
       return;
     }
-    dispatch({ type: actionTypes.LOGIN, payload: { token, user, balance } });
+    dispatch({
+      type: actionTypes.LOGIN,
+      payload: { token, user, balance },
+    });
     saveSession({ token, user, balance });
   };
 

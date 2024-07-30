@@ -18,16 +18,18 @@ const FIELD_ERROR = {
     "Пароль повинен складатися з не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
   PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
 };
+
 const RecoveryConfirmPage = () => {
   const [formValues, setFormValues] = useState({
     code: "",
     password: "",
     passwordAgain: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState("");
   const navigate = useNavigate();
+
   const validate = (name, value) => {
     if (value.length < 1) {
       return FIELD_ERROR.IS_EMPTY;
@@ -43,14 +45,16 @@ const RecoveryConfirmPage = () => {
     }
     return null;
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
+    setFormValues((prevValues) => ({ ...prevValues, [name]: value }));
     const error = validate(name, value);
-    setError({ ...error, [name]: error });
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form submitted"); // Debugging log
 
     const newErrors = {};
     Object.keys(formValues).forEach((name) => {
@@ -59,8 +63,11 @@ const RecoveryConfirmPage = () => {
         newErrors[name] = error;
       }
     });
+
+    console.log("Errors:", newErrors); // Debugging log
+
     if (Object.keys(newErrors).length > 0) {
-      setError(newErrors);
+      setErrors(newErrors);
       return;
     }
 
@@ -79,7 +86,11 @@ const RecoveryConfirmPage = () => {
         }),
       });
 
+      console.log("Response:", response); // Debugging log
+
       const data = await response.json();
+
+      console.log("Data:", data); // Debugging log
 
       if (response.ok) {
         setAlert(data.message);
@@ -87,19 +98,21 @@ const RecoveryConfirmPage = () => {
         navigate("/balance");
       } else {
         setAlert(data.message);
-        setError(data.message);
+        setErrors({ general: data.message });
       }
     } catch (error) {
+      console.error("Error:", error); // Debugging log
       setAlert(error.message);
-      setError("Something went wrong. Please try again later.");
+      setErrors({ general: "Something went wrong. Please try again later." });
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <Page>
       <Header
-        title={"Sign Recover password"}
+        title={"Recover password"}
         description={"Write the code you received"}
       />
       <form className="form" onSubmit={handleSubmit}>
@@ -107,50 +120,55 @@ const RecoveryConfirmPage = () => {
           <Field
             label="Code"
             id="code"
+            name="code"
             value={formValues.code}
             onChange={handleChange}
             disabled={isLoading}
             placeholder={"Input your code"}
           />
-          {error.code && <span className="form__error">{error.code}</span>}{" "}
+          {errors.code && <span className="form__error">{errors.code}</span>}
         </div>
         <div className="form__item">
           <FieldPassword
             label={"New Password:"}
             placeholder={"Input your password"}
+            name="password"
             value={formValues.password}
             onChange={handleChange}
             disabled={isLoading}
           />
-          {error.password && (
-            <span className="form__error">{error.password}</span>
+          {errors.password && (
+            <span className="form__error">{errors.password}</span>
           )}
         </div>
         <div className="form__item">
           <FieldPassword
             label={"Password again:"}
             placeholder={"Input your password again"}
+            name="passwordAgain"
             value={formValues.passwordAgain}
             onChange={handleChange}
             disabled={isLoading}
           />
-          {error.passwordAgain && (
-            <span className="form__error">{error.passwordAgain}</span>
+          {errors.passwordAgain && (
+            <span className="form__error">{errors.passwordAgain}</span>
           )}
         </div>
+        <Button
+          className={"button button__dark"}
+          text={"Restore password"}
+          disabled={isLoading}
+          type="submit"
+        />
       </form>
-      <Button
-        className={"button button__dark"}
-        text={"Restore password"}
-        disabled={isLoading}
-      />
-      {alert && (
+      {errors && (
         <Alert
           status={`${isLoading ? "progress" : "success"}`}
-          message={alert}
+          message={errors.password}
         />
       )}
     </Page>
   );
 };
+
 export default RecoveryConfirmPage;

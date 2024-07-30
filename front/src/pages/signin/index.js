@@ -94,6 +94,7 @@ const SigninPage = () => {
       } else {
         setErrors({ general: data.message });
         setAlert({ status: "error", message: data.message });
+        navigate("/signup");
       }
     } catch (error) {
       setErrors({ general: "Something went wrong. Please try again later." });
@@ -119,8 +120,9 @@ const SigninPage = () => {
         </div>
         <div className="form__item">
           <FieldPassword
-            label={"Password:"}
+            label={"Your Password:"}
             placeholder={"Input your password"}
+            name="password"
             value={formValues.password}
             onChange={handleChange}
             disabled={isLoading}

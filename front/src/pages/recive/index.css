@@ -1,3 +1,8 @@
+.recive {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .recive__item {
   display: flex;
   flex-direction: column;

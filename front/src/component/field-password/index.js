@@ -1,6 +1,14 @@
 import { useState, useRef } from "react";
 import "./index.css";
-const FieldPassword = ({ label, placeholder, disabled, value, onChange }) => {
+
+const FieldPassword = ({
+  label,
+  placeholder,
+  disabled,
+  value,
+  onChange,
+  name,
+}) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputRef = useRef(null);
 
@@ -13,7 +21,7 @@ const FieldPassword = ({ label, placeholder, disabled, value, onChange }) => {
 
   return (
     <div className="field field--password">
-      <label htmlFor="password" className="field__label">
+      <label htmlFor={name} className="field__label">
         {label}
       </label>
       <div className="field__wrapper">
@@ -23,18 +31,19 @@ const FieldPassword = ({ label, placeholder, disabled, value, onChange }) => {
           type={showPassword ? "text" : "password"}
           className="field__input validation"
           value={value}
-          name="password"
+          name={name}
           placeholder={placeholder}
           disabled={disabled}
         />
         <span
           onClick={togglePasswordShow}
           className={
-            showPassword ? "field__icon field__icon--show" : "field__icon "
+            showPassword ? "field__icon field__icon--show" : "field__icon"
           }
         ></span>
       </div>
     </div>
   );
 };
+
 export default FieldPassword;
