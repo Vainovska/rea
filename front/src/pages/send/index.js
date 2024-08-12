@@ -4,35 +4,37 @@ import Field from "../../component/field";
 import FieldEmail from "../../component/field-email";
 import Button from "../../component/button";
 import { Alert } from "../../component/alert";
-import { useState, useContext } from "react";
-import { AuthContext } from "../../AuthProvider";
+import { useState } from "react";
+import { useAuth } from "../../AuthProvider";
+import { useNavigate } from "react-router-dom";
 const SendPage = () => {
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
-  const { authState, dispatch } = useContext(AuthContext);
-
+  const { balance, token, updateBalance } = useAuth();
+  const [alert, setAlert] = useState({ status: "", message: "" });
+  const navigate = useNavigate();
   const handleSend = async () => {
     try {
       const response = await fetch("http://localhost:4000/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authState.token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email, amount }),
       });
       const data = await response.json();
       if (response.ok) {
-        alert(data.message);
-        dispatch({
-          type: "UPDATE_BALANCE",
-          payload: authState.user.balance - parseFloat(amount),
-        });
+        console.log("Response data:", data);
+        setAlert({ status: "success", message: data.message });
+        updateBalance(data.newBalance);
+        navigate("/balance");
       } else {
-        alert(data.message);
+        console.error(`Server returned status ${response.status}:`, data);
+        setAlert({ status: "error", message: data.message });
       }
     } catch (error) {
-      alert("Error sending money");
+      setAlert({ status: "error", message: error.message });
     }
   };
 
@@ -56,7 +58,9 @@ const SendPage = () => {
         className={"button button__dark"}
         text={"Send"}
       />
-      <Alert />
+      {alert.status && (
+        <Alert status={`${alert.status}`} message={alert.message} />
+      )}
     </Page>
   );
 };

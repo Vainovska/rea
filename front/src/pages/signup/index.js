@@ -115,16 +115,10 @@ const SignupForm = () => {
         },
         body: JSON.stringify(values),
       });
-
       const data = await response.json();
-      console.log("Response data:", data);
       if (response.ok) {
         const token = data.session;
         const user = data.user;
-
-        console.log("Extracted token:", token);
-        console.log("Extracted user:", user);
-
         if (token && user) {
           saveSession({ token, user });
           login(token, user);
@@ -197,7 +191,7 @@ const SignupForm = () => {
           onClick={handleClick}
         />
         <div className="form__item">
-          <label htmlFor="isConfirm">
+          <label className="label" htmlFor="isConfirm">
             <input
               type="checkbox"
               name="isConfirm"
@@ -207,7 +201,7 @@ const SignupForm = () => {
                 handleChange(FIELD_NAME.IS_AGREE, e.target.checked)
               }
             />
-            Я згоден/-на з умовами
+            <span>I accept</span>
           </label>
           {error[FIELD_NAME.IS_AGREE] && (
             <span>{error[FIELD_NAME.IS_AGREE]}</span>

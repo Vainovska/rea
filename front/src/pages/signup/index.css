@@ -17,7 +17,10 @@
     display: block;
   }
 }
-
+.label {
+  display: flex;
+  gap: 8px;
+}
 .validation {
   &--active {
     border-color: red !important;

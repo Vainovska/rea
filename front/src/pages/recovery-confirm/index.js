@@ -54,8 +54,6 @@ const RecoveryConfirmPage = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted"); // Debugging log
-
     const newErrors = {};
     Object.keys(formValues).forEach((name) => {
       const error = validate(name, formValues[name]);
@@ -63,8 +61,6 @@ const RecoveryConfirmPage = () => {
         newErrors[name] = error;
       }
     });
-
-    console.log("Errors:", newErrors); // Debugging log
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -85,13 +81,7 @@ const RecoveryConfirmPage = () => {
           password: formValues.password,
         }),
       });
-
-      console.log("Response:", response); // Debugging log
-
       const data = await response.json();
-
-      console.log("Data:", data); // Debugging log
-
       if (response.ok) {
         setAlert(data.message);
         saveSession(data.session);
@@ -101,7 +91,6 @@ const RecoveryConfirmPage = () => {
         setErrors({ general: data.message });
       }
     } catch (error) {
-      console.error("Error:", error); // Debugging log
       setAlert(error.message);
       setErrors({ general: "Something went wrong. Please try again later." });
     } finally {
@@ -161,7 +150,7 @@ const RecoveryConfirmPage = () => {
           type="submit"
         />
       </form>
-      {errors && (
+      {alert && (
         <Alert
           status={`${isLoading ? "progress" : "success"}`}
           message={errors.password}

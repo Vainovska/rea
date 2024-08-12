@@ -1,13 +1,23 @@
 class Transaction {
   static #list = []
 
-  constructor(amount, type, paymentMethod, statusTran) {
-    this.id = this.getRandomId(10000, 99999) // Assign a random ID
+  constructor({
+    id,
+    user,
+    amount,
+    type,
+    paymentMethod,
+    status,
+    userEmail,
+  }) {
+    this.id = id || this.getRandomId(10000, 99999) // Assign a random ID if not provided
+    this.user = user
     this.amount = amount
     this.type = type
     this.paymentMethod = paymentMethod
     this.date = new Date().getTime()
-    this.statusTran = statusTran
+    this.status = status
+    this.userEmail = userEmail
   }
 
   getRandomId(min, max) {
@@ -18,24 +28,41 @@ class Transaction {
     return this.#list
   }
 
-  static getById(id) {
-    return this.#list.find(
-      (transaction) => transaction.id === id,
+  static getListByUserId(userId) {
+    return this.#list.filter(
+      (transaction) => transaction.user === userId,
     )
   }
 
-  static createTransaction(
+  static getById(id) {
+    console.log('Transaction.getById called with ID:', id)
+    const transaction = this.#list.find(
+      (transaction) => transaction.id === id,
+    )
+    if (!transaction) {
+      console.log(
+        'Transaction not found in list for ID:',
+        id,
+      )
+    }
+    return transaction
+  }
+  static createTransaction({
+    user,
     amount,
     type,
     paymentMethod,
-    statusTran,
-  ) {
-    const newTransaction = new Transaction(
+    status,
+    userEmail,
+  }) {
+    const newTransaction = new Transaction({
+      user,
       amount,
       type,
       paymentMethod,
-      statusTran,
-    )
+      status,
+      userEmail,
+    })
     this.#list.push(newTransaction)
     return newTransaction
   }

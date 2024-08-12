@@ -1,3 +1,4 @@
+import Page from "../../component/page";
 export const ErrorPage = () => {
-  return <h1>Error</h1>;
+  return <Page>Error</Page>;
 };

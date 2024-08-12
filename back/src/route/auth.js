@@ -36,13 +36,13 @@ router.post('/signup', function (req, res) {
 
     const newUser = User.create({ email, password })
     const session = Session.create(newUser)
-    const notification = new Notification(
+    const notification = Notification.create(
       newUser.id,
-      'signup',
+      'Announc',
       'Ви успішно зареєструвалися.',
     )
     console.log(notification)
-    // Create confirmation code
+
     const confirmation = Confirm.create(newUser.email)
     console.log(
       'Confirmation code created:',
@@ -54,7 +54,7 @@ router.post('/signup', function (req, res) {
       session,
       user: newUser,
       notification,
-      confirmationCode: confirmation.code, // Send code for debugging purposes
+      confirmationCode: confirmation.code,
     })
   } catch (err) {
     return res
@@ -63,7 +63,6 @@ router.post('/signup', function (req, res) {
   }
 })
 
-// GET route
 router.get('/signup-confirm', function (req, res) {
   const { renew, email } = req.query
   console.log('Renew request:', renew, 'Email:', email)
@@ -80,7 +79,6 @@ router.get('/signup-confirm', function (req, res) {
   })
 })
 
-// POST route
 router.post('/signup-confirm', function (req, res) {
   const { code, token } = req.body
   console.log({ code, token })
@@ -121,12 +119,14 @@ router.post('/signup-confirm', function (req, res) {
     user.isConfirm = true
     session.user.isConfirm = true
     Session.save(token, session)
-    const notification = new Notification(
+    const notification = Notification.create(
       user.id,
-      'signupConfirm',
+      'Announc',
       'Ви успішно підтвердили свою пошту.',
     )
     console.log(notification)
+    const notificationList = Notification.getList()
+    console.log('notificationList', notificationList)
     return res.status(200).json({
       message: 'Ви підтвердили свою пошту',
       session,
@@ -172,9 +172,9 @@ router.post('/signin', function (req, res) {
     }
 
     const session = Session.create(user)
-    const notification = new Notification(
+    const notification = Notification.create(
       user.id,
-      'signin',
+      'Announc',
       'Ви успішно увійшли в систему.',
     )
     console.log(notification)
@@ -209,7 +209,7 @@ router.post('/recovery', async function (req, res) {
   }
 
   try {
-    const user = await User.getByEmail(email) // Ensure this method is async if using async/await
+    const user = await User.getByEmail(email)
 
     if (!user) {
       return res.status(400).json({
@@ -218,13 +218,13 @@ router.post('/recovery', async function (req, res) {
       })
     }
 
-    await Confirm.create(email) // Ensure this method is async if using async/await
+    await Confirm.create(email)
 
     return res.status(200).json({
       message: 'Код для відновлення паролю відправлений',
     })
   } catch (err) {
-    console.error('Error in /recovery:', err) // Add detailed logging
+    console.error('Error in /recovery:', err)
     return res.status(500).json({
       message: 'Internal Server Error',
     })
@@ -250,7 +250,7 @@ router.post('/recovery-confirm', async function (req, res) {
   }
 
   try {
-    const email = await Confirm.getData(Number(code)) // Ensure this method is async if using async/await
+    const email = await Confirm.getData(Number(code))
 
     if (!email) {
       return res.status(400).json({
@@ -258,7 +258,7 @@ router.post('/recovery-confirm', async function (req, res) {
       })
     }
 
-    const user = await User.getByEmail(email) // Ensure this method is async if using async/await
+    const user = await User.getByEmail(email)
 
     if (!user) {
       return res.status(400).json({
@@ -269,11 +269,11 @@ router.post('/recovery-confirm', async function (req, res) {
     user.password = password
     console.log('Updated User:', user)
 
-    const session = await Session.create(user) // Ensure this method is async if using async/await
+    const session = await Session.create(user)
 
-    const notification = new Notification(
+    const notification = Notification.create(
       user.id,
-      'accountRecovery',
+      'Announc',
       'Ви успішно відновили акаунт.',
     )
     console.log(notification)
@@ -284,7 +284,7 @@ router.post('/recovery-confirm', async function (req, res) {
       notification,
     })
   } catch (err) {
-    console.error('Error in /recovery-confirm:', err) // Add detailed logging
+    console.error('Error in /recovery-confirm:', err)
     return res.status(500).json({
       message: 'Internal Server Error',
     })

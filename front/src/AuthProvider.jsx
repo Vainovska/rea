@@ -108,9 +108,22 @@ export const AuthProvider = ({ children }) => {
     });
     saveSession({ token, user, balance });
   };
+  const updateBalance = (balance) => {
+    dispatch({
+      type: actionTypes.UPDATE_BALANCE,
+      payload: balance,
+    });
+    const session = loadSession();
+    if (session) {
+      session.balance = balance;
+      saveSession(session);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, updateAuth }}>
+    <AuthContext.Provider
+      value={{ ...state, login, logout, updateAuth, updateBalance }}
+    >
       {children}
     </AuthContext.Provider>
   );

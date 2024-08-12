@@ -7,6 +7,7 @@ class Session {
       email: user.email,
       isConfirm: user.isConfirm,
       id: user.id,
+      balance: user.balance,
     }
   }
 

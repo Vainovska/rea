@@ -15,10 +15,7 @@ router.post('/change-password', (req, res) => {
     req.headers.authorization,
   )
   const { oldPassword, newPassword } = req.body
-  const token = req.headers.authorization?.split(' ')[1] // Extract token
-  console.log('Old password:', oldPassword)
-  console.log('New password:', newPassword)
-  console.log('Received token:', token)
+  const token = req.headers.authorization?.split(' ')[1]
   if (!token) {
     return res
       .status(400)
@@ -56,9 +53,9 @@ router.post('/change-password', (req, res) => {
     user.password = newPassword
     user.save()
 
-    const notification = new Notification(
+    const notification = Notification.create(
       user.id,
-      'passwordChange',
+      'Warning',
       'Ваш пароль успішно змінено.',
     )
     console.log('New notification created:', notification)
@@ -79,7 +76,7 @@ router.post('/change-email', (req, res) => {
     'Authorization header:',
     req.headers.authorization,
   )
-  const token = req.headers.authorization?.split(' ')[1] // Extract token
+  const token = req.headers.authorization?.split(' ')[1]
   if (!token) {
     return res
       .status(400)
@@ -117,10 +114,9 @@ router.post('/change-email', (req, res) => {
 
     user.email = email
     user.save()
-    // console.log("Creating notification:", userId, type, text);
     const notification = Notification.create(
       user.id,
-      'emailChange',
+      'Warning',
       'Ваша електронна пошта успішно змінена.',
     )
 
@@ -131,7 +127,7 @@ router.post('/change-email', (req, res) => {
       notification,
     })
   } catch (error) {
-    console.error('Error in email change:', error) // Log the error details
+    console.error('Error in email change:', error)
     res
       .status(500)
       .json({ message: 'Something went wrong' })

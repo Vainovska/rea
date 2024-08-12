@@ -71,7 +71,6 @@ const SignupConfirmPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted values:", values);
     if (!values[FIELD_NAME.CODE]) {
       setAlert({ status: "error", message: "Invalid values or code" });
       return;
@@ -88,8 +87,7 @@ const SignupConfirmPage = () => {
         return;
       }
       const session = getTokenSession();
-      const token = session.token; // Ensure we're using the correct token format
-      console.log("Token retrieved:", token);
+      const token = session.token;
       if (!token) {
         setErrors((prevErrors) => ({
           ...prevErrors,
@@ -105,12 +103,11 @@ const SignupConfirmPage = () => {
         },
         body: JSON.stringify({
           code: values[FIELD_NAME.CODE],
-          token: token, // Sending the correct token format
+          token: token,
         }),
       });
 
       const data = await response.json();
-      console.log("Response data:", data);
       if (response.ok) {
         setAlert({ status: "success", message: data.message });
         saveSession(data.session);

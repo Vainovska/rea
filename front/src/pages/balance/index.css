@@ -11,6 +11,9 @@
   color: #fff;
   justify-content: space-between;
 }
+.balance-header__title {
+  color: #fff;
+}
 .icon {
   display: block;
   height: 24px;
@@ -78,4 +81,52 @@
 .button__text {
   font-size: 14px;
   color: #1f1f1f;
+}
+.transaction__list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e9e8eb;
+  border-radius: 8px;
+  padding: 16px;
+  gap: 12px;
+}
+.transaction__item {
+  text-decoration: none;
+  color: #1f1f1f;
+}
+.transaction__icon {
+  display: block;
+  height: 40px;
+  width: 40px;
+  background-size: cover;
+}
+.send {
+  background-image: url("./sending.svg");
+}
+.resive-stripe {
+  background-image: url("./srtipe.svg");
+}
+.resive-coinbase {
+  background-image: url("./coinbase.svg");
+}
+.transaction__amount {
+  font-size: 16px;
+}
+.plus {
+  color: #26bf80;
+}
+.transaction__descr {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+.transaction__title {
+  color: #1d1d1f;
+  font-size: 16px;
+  font-weight: bold;
+}
+.transaction__text {
+  color: #939199;
+  font-size: 12px;
 }

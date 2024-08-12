@@ -2,11 +2,12 @@ class User {
   static #list = []
   static #count = 1
 
-  constructor({ email, password }) {
+  constructor({ email, password, balance }) {
     this.id = User.#count++
     this.email = String(email).toLowerCase()
     this.password = String(password)
     this.isConfirm = false
+    this.balance = balance || 0
   }
 
   static create(data) {
@@ -37,6 +38,13 @@ class User {
     return User.#list
   }
 
+  static getByBalance(balance) {
+    return (
+      User.#list.find(
+        (user) => user.balance === Number(balance),
+      ) || null
+    )
+  }
   verifyPassword(password) {
     return this.password === password
   }
